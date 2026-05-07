@@ -39,7 +39,12 @@ Before you begin, ensure you have the following installed:
    ```bash
    npm run dev
    ```
-4. **Explore the Prototype**:
+4. **Linting**:
+   Check for code quality and potential errors:
+   ```bash
+   npm run lint
+   ```
+5. **Explore the Prototype**:
    - Visit `/components` to see the available UI building blocks.
    - Visit `/settings` to configure your simulation environment.
 
@@ -176,7 +181,12 @@ export default function MyNewPage() {
 
 To publish your prototype to GitHub Pages, follow these steps:
 
-### 1. Enable Static Export
+### 1. Verification & Export
+Before deploying, it is recommended to run the linter to ensure there are no build-breaking errors:
+```bash
+npm run lint
+```
+
 Ensure your `next.config.mjs` is configured for a static export. This allows Next.js to generate a standalone `out` directory that can be hosted on GitHub Pages:
 
 ```js
