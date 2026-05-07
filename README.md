@@ -104,6 +104,21 @@ CREATE TABLE comments (
   text text not null,
   author text not null
 );
+
+-- Enable RLS and add policies for anonymous access
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read access"
+ON public.comments
+FOR SELECT
+TO anon
+USING (true);
+
+CREATE POLICY "Allow public insert access"
+ON public.comments
+FOR INSERT
+TO anon
+WITH CHECK (true);
 ```
 
 ## ⚙️ Simulation Settings
