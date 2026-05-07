@@ -2,6 +2,8 @@
 
 A high-fidelity, high-speed wireframing system for rapidly building complex, adaptive web interfaces. Built with Next.js and Tailwind CSS, this kit prioritizes structural clarity and stakeholder collaboration over branded aesthetics.
 
+[**Live Demo**](https://anton-g-kulikov.github.io/prototype-kit/)
+
 ## 🏁 Visual Identity: Shadowless B&W Brutalism
 
 The project follows a strict **"Wireframe-First"** aesthetic to focus discussions on UX and functionality rather than colors or branding:
