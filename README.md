@@ -171,3 +171,18 @@ For the comment system to work on the deployed site, you must add your Supabase 
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 The deployment workflow is already configured to inject these secrets during the build process.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! If you're using this kit and want to improve it:
+1. **Fork** the repository.
+2. Create a **feature branch** (`git checkout -b feature/amazing-ui`).
+3. **Commit** your changes (`git commit -m 'Add some brutalist magic'`).
+4. **Push** to the branch (`git push origin feature/amazing-ui`).
+5. Open a **Pull Request**.
+
+## 📄 License
+
+This project is licensed under the [**GNU GPLv3**](https://www.gnu.org/licenses/gpl-3.0.en.html). You are free to use, modify, and distribute this software, provided that all derivative works remain open-source and carry the same license.
