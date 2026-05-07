@@ -36,6 +36,18 @@ The project follows a strict **"Wireframe-First"** aesthetic to focus discussion
    - Visit `/components` to see the available UI building blocks.
    - Visit `/settings` to configure your simulation environment.
 
+## 🔑 Configuration & Environment Variables
+
+The project uses Supabase for the real-time comment system. Create a `.env.local` file in the root directory and add your credentials:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+> [!NOTE]
+> You can find these credentials in your Supabase Project Settings under **API**.
+
 
 
 ## 💬 Using the Comment System
@@ -122,6 +134,9 @@ jobs:
           node-version: '20'
       - run: npm install
       - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
@@ -146,6 +161,16 @@ jobs:
 4. **DNS Configuration**:
    - For a **subdomain**: Add a `CNAME` record pointing to `yourusername.github.io`.
    - For an **apex domain**: Add `A` records pointing to GitHub's IP addresses.
+
+### 4. GitHub Secrets (Supabase)
+For the comment system to work on the deployed site, you must add your Supabase credentials as GitHub Secrets:
+1. In your GitHub repository, go to **Settings > Secrets and variables > Actions**.
+2. Click **New repository secret**.
+3. Add the following secrets:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+The deployment workflow is already configured to inject these secrets during the build process.
 
 ---
 
