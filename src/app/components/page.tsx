@@ -16,7 +16,7 @@ export default function ComponentsPage() {
             Design Primitives
           </h1>
           <p className="text-2xl text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed font-medium">
-            You don't need to create or change those elements yourself – Tailwind already has everything you need. Just ask your coding agent to implement actual pages, forms and other elements.
+            You don&apos;t need to create or change those elements yourself – Tailwind already has everything you need. Just ask your coding agent to implement actual pages, forms and other elements.
           </p>
         </header>
 

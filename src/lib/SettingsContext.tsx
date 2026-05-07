@@ -34,7 +34,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem("prototype-settings");
     if (saved) {
       try {
-        setSettings({ ...defaultSettings, ...JSON.parse(saved) });
+        const parsed = JSON.parse(saved);
+        // Using setTimeout to avoid synchronous state update in effect
+        setTimeout(() => {
+          setSettings(prev => ({ ...prev, ...parsed }));
+        }, 0);
       } catch (e) {
         console.error("Failed to parse settings", e);
       }
