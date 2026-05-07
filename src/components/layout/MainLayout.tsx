@@ -29,11 +29,11 @@ export const MainLayout = ({ children, title, noPadding = false }: { children: R
       <div className="flex-1 flex flex-col min-w-0 h-full">
         <Header title={title} onMenuClick={() => setIsSidebarOpen(true)} />
         <main className="flex-1 overflow-hidden flex flex-col">
-          <div className="animate-fade-in flex-1 flex flex-col overflow-y-auto">
+          <div className="animate-fade-in flex-1 flex flex-col overflow-y-auto bg-zinc-50 dark:bg-zinc-950">
             {noPadding ? (
               children
             ) : (
-              <div className={`bg-zinc-50 dark:bg-zinc-950 min-h-full relative ${settings.compactMode ? 'p-2 sm:p-4' : 'p-4 sm:p-6 md:p-10'}`}>
+              <div className={`min-h-full relative ${settings.compactMode ? 'p-2 sm:p-4' : 'p-4 sm:p-6 md:p-10'}`}>
                 <div className="absolute inset-0 bg-dot-pattern [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
                 <div className="relative z-10">
                   {children}
