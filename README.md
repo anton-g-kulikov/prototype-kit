@@ -19,6 +19,13 @@ The project follows a strict **"Wireframe-First"** aesthetic to focus discussion
 - **Speed-Optimized**: Pre-configured UI primitives (`Button`, `Card`, `Input`) designed to be extended directly with Tailwind utility classes.
 - **Contextual Notifications**: Built-in support for status-based badges and alerts (e.g., Personal Email warnings, Connection statuses).
 
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+- **Node.js** (v18.x or later)
+- **npm** or **bun**
+- A **Supabase** account (for the real-time comment system)
+
 ## 🛠 Getting Started
 
 1. **Environment Setup**:
@@ -32,9 +39,27 @@ The project follows a strict **"Wireframe-First"** aesthetic to focus discussion
    ```bash
    npm run dev
    ```
-4. **Explore Primitives**:
+4. **Explore the Prototype**:
    - Visit `/components` to see the available UI building blocks.
    - Visit `/settings` to configure your simulation environment.
+
+## 📂 Project Structure
+
+```text
+├── src/
+│   ├── app/            # Next.js App Router (Pages & Routes)
+│   ├── components/
+│   │   ├── layout/     # MainLayout and navigation components
+│   │   ├── Comments/   # Integrated feedback system
+│   │   └── ui/         # Atomic UI primitives (Buttons, Cards, etc.)
+│   └── lib/            # Global state (SettingsContext) and utilities
+├── public/             # Static assets
+└── tailwind.config.ts  # Design system & wireframe tokens
+```
+
+## 🧩 Components & Customization
+
+The kit uses a "headless" primitive approach. For detailed instructions on adding new components or transitioning from wireframes to branded UI, see the [COMPONENTS_GUIDE.md](./src/components/COMPONENTS_GUIDE.md).
 
 ## 🔑 Configuration & Environment Variables
 
@@ -93,6 +118,41 @@ The `SettingsContext` allows you to change the app's behavior on the fly:
 1. **No Placeholders**: Use `generate_image` or real data to keep the prototype feeling "alive."
 2. **Direct Tailwind**: Avoid creating small, ad-hoc components. Use Tailwind utility classes directly in the page files for maximum speed.
 3. **Purity**: Keep logic separate from presentation to allow for easy transition to production codebases.
+
+## 🏃‍♂️ Quick Start: Creating a New Page
+
+Adding a new route is straightforward using the Next.js App Router. Here is a template for a new page:
+
+```tsx
+// src/app/my-new-page/page.tsx
+import { MainLayout } from "@/components/layout/MainLayout";
+import { Card, Button, Label, Input } from "@/components/ui";
+import { CommentMarker } from "@/components/Comments/CommentMarker";
+
+export default function MyNewPage() {
+  return (
+    <MainLayout title="My New Page">
+      <div className="max-w-4xl mx-auto p-8 space-y-8">
+        <header className="space-y-2">
+          <h1 className="text-4xl font-black uppercase tracking-tighter">New Feature</h1>
+          <p className="text-zinc-500 font-medium text-lg">Detailed description of the feature.</p>
+        </header>
+
+        <Card className="p-8 relative">
+          <div className="absolute top-4 right-4">
+            <CommentMarker id="new-feature-card" title="Feature Card" description="Feedback on this section." />
+          </div>
+          <div className="space-y-4">
+            <Label className="text-xl font-black">Input Label</Label>
+            <Input placeholder="Enter data..." />
+            <Button variant="primary">Submit Action</Button>
+          </div>
+        </Card>
+      </div>
+    </MainLayout>
+  );
+}
+```
 
 
 ---
