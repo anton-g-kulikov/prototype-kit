@@ -193,6 +193,7 @@ Ensure your `next.config.mjs` is configured for a static export. This allows Nex
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  trailingSlash: true,
   images: {
     unoptimized: true, // Required for static export
   },
@@ -205,20 +206,62 @@ export default nextConfig;
 Create a file at `.github/workflows/deploy.yml`:
 
 ```yaml
-name: Deploy to GitHub Pages
+name: Deploy Next.js site to Pages
 on:
   push:
-    branches: [main]
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Detect package manager
+        id: detect-package-manager
+        run: |
+          if [ -f "${{ github.workspace }}/yarn.lock" ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+            echo "command=install" >> $GITHUB_OUTPUT
+            echo "runner=yarn" >> $GITHUB_OUTPUT
+            exit 0
+          elif [ -f "${{ github.workspace }}/package.json" ]; then
+            echo "manager=npm" >> $GITHUB_OUTPUT
+            echo "command=ci" >> $GITHUB_OUTPUT
+            echo "runner=npx --no-install" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "Unable to determine package manager"
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - run: npm install
-      - run: npm run build
+          node-version: "20"
+          cache: ${{ steps.detect-package-manager.outputs.manager }}
+      - uses: actions/configure-pages@v5
+        with:
+          static_site_generator: next
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
+      - name: Install dependencies
+        run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Build with Next.js
+        run: ${{ steps.detect-package-manager.outputs.runner }} next build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -226,17 +269,14 @@ jobs:
         with:
           path: ./out
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 ```
 
 ### 3. Connect a Custom Domain
@@ -247,7 +287,21 @@ jobs:
    - For a **subdomain**: Add a `CNAME` record pointing to `yourusername.github.io`.
    - For an **apex domain**: Add `A` records pointing to GitHub's IP addresses.
 
-### 4. GitHub Secrets (Supabase)
+### 4. No Custom Domain?
+If you are deploying to `https://<username>.github.io/<repo-name>/` (without a custom domain), you must update your `next.config.mjs` to include the `basePath`:
+
+```js
+const nextConfig = {
+  output: 'export',
+  basePath: '/prototype-kit', // Replace with your repository name
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
+};
+```
+
+### 5. GitHub Secrets (Supabase)
 For the comment system to work on the deployed site, you must add your Supabase credentials as GitHub Secrets:
 1. In your GitHub repository, go to **Settings > Secrets and variables > Actions**.
 2. Click **New repository secret**.
