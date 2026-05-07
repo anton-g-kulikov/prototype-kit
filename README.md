@@ -55,6 +55,20 @@ import { CommentMarker } from "@/components/Comments/CommentMarker";
 </div>
 ```
 
+### Database Schema
+
+The real-time comment system requires a `comments` table in your Supabase project. Run the following SQL in your Supabase SQL Editor:
+
+```sql
+CREATE TABLE comments (
+  id uuid default uuid_generate_v4() primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  marker_id text not null,
+  text text not null,
+  author text not null
+);
+```
+
 ## ⚙️ Simulation Settings
 
 The `SettingsContext` allows you to change the app's behavior on the fly:
