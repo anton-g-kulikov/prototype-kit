@@ -60,7 +60,7 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
 export const Header = ({ title, onMenuClick }: { title?: string, onMenuClick?: () => void }) => {
   const { settings } = useSettings();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const accountName = 'Demo User';
+  const accountName = settings.userMode === 'admin' ? 'Demo Admin' : 'Demo User';
   const roleLabel = settings.userMode.charAt(0).toUpperCase() + settings.userMode.slice(1);
 
   return (
