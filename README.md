@@ -171,7 +171,3 @@ For the comment system to work on the deployed site, you must add your Supabase 
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 The deployment workflow is already configured to inject these secrets during the build process.
-
----
-
-*Extracted from the DrTalk prototype ecosystem. Optimized for rapid iteration.*
