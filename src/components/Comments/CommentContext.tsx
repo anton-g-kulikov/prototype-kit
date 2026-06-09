@@ -11,6 +11,7 @@ export type Comment = {
   author: string;
   timestamp: number;
   marker_id: string;
+  resolved?: boolean;
 };
 
 export type MarkerData = {
@@ -24,6 +25,8 @@ type CommentContextType = {
   setActiveMarker: (marker: MarkerData | null) => void;
   comments: Record<string, Comment[]>;
   addComment: (markerId: string, text: string) => void;
+  resolveComment: (markerId: string, commentId: string) => void;
+  unresolveComment: (markerId: string, commentId: string) => void;
   isPanelOpen: boolean;
   setIsPanelOpen: (open: boolean) => void;
   isLoading: boolean;
@@ -78,7 +81,8 @@ export function CommentProvider({ children }: { children: React.ReactNode }) {
             text: curr.text,
             author: curr.author || 'Viewer',
             timestamp: new Date(curr.created_at || curr.timestamp || Date.now()).getTime(),
-            marker_id: mId
+            marker_id: mId,
+            resolved: !!curr.resolved
           });
         });
         
@@ -95,31 +99,56 @@ export function CommentProvider({ children }: { children: React.ReactNode }) {
       .channel('comments-realtime')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'comments' },
+        { event: '*', schema: 'public', table: 'comments' },
         (payload) => {
-          const newComment = payload.new as any;
-          const mId = newComment.marker_id || newComment.markerId;
-          
-          if (!mId) return;
+          if (payload.eventType === 'INSERT') {
+            const newComment = payload.new as any;
+            const mId = newComment.marker_id || newComment.markerId;
+            if (!mId) return;
 
-          setComments(prev => {
-            const currentMarkerComments = prev[mId] || [];
-            if (currentMarkerComments.some(c => c.id === newComment.id)) return prev;
+            setComments(prev => {
+              const currentMarkerComments = prev[mId] || [];
+              if (currentMarkerComments.some(c => c.id === newComment.id)) return prev;
 
-            return {
-              ...prev,
-              [mId]: [
-                ...currentMarkerComments,
-                {
-                  id: newComment.id,
-                  text: newComment.text,
-                  author: newComment.author || 'Viewer',
-                  timestamp: new Date(newComment.created_at || Date.now()).getTime(),
-                  marker_id: mId
+              return {
+                ...prev,
+                [mId]: [
+                  ...currentMarkerComments,
+                  {
+                    id: newComment.id,
+                    text: newComment.text,
+                    author: newComment.author || 'Viewer',
+                    timestamp: new Date(newComment.created_at || Date.now()).getTime(),
+                    marker_id: mId,
+                    resolved: !!newComment.resolved
+                  }
+                ]
+              };
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedComment = payload.new as any;
+            const mId = updatedComment.marker_id || updatedComment.markerId;
+            if (!mId) return;
+
+            setComments(prev => {
+              const currentMarkerComments = prev[mId] || [];
+              const updatedList = currentMarkerComments.map(c => {
+                if (c.id === updatedComment.id) {
+                  return {
+                    ...c,
+                    text: updatedComment.text,
+                    author: updatedComment.author || c.author,
+                    resolved: !!updatedComment.resolved
+                  };
                 }
-              ]
-            };
-          });
+                return c;
+              });
+              return {
+                ...prev,
+                [mId]: updatedList
+              };
+            });
+          }
         }
       )
       .subscribe();
@@ -136,7 +165,8 @@ export function CommentProvider({ children }: { children: React.ReactNode }) {
       text,
       author: 'You (sending...)',
       timestamp: Date.now(),
-      marker_id: markerId
+      marker_id: markerId,
+      resolved: false
     };
 
     setComments(prev => ({
@@ -147,7 +177,7 @@ export function CommentProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase
       .from('comments')
       .insert([
-        { marker_id: markerId, text: text, author: 'Viewer' }
+        { marker_id: markerId, text: text, author: 'Viewer', resolved: false }
       ]);
 
     if (error) {
@@ -157,7 +187,7 @@ export function CommentProvider({ children }: { children: React.ReactNode }) {
         const updated = {
           ...prev,
           [markerId]: prev[markerId].map(c => 
-            c.id === tempId ? { ...c, author: 'Viewer' } : c
+            c.id === tempId ? { ...c, author: 'Viewer', resolved: false } : c
           )
         };
         localStorage.setItem('prototype_comments', JSON.stringify(updated));
@@ -169,12 +199,60 @@ export function CommentProvider({ children }: { children: React.ReactNode }) {
         const updated = {
           ...prev,
           [markerId]: prev[markerId].map(c => 
-            c.id === tempId ? { ...c, author: 'Viewer' } : c
+            c.id === tempId ? { ...c, author: 'Viewer', resolved: false } : c
           )
         };
         localStorage.setItem('prototype_comments', JSON.stringify(updated));
         return updated;
       });
+    }
+  };
+
+  const resolveComment = async (markerId: string, commentId: string) => {
+    // 1. Optimistic update
+    setComments(prev => {
+      const updated = {
+        ...prev,
+        [markerId]: (prev[markerId] || []).map(c => 
+          c.id === commentId ? { ...c, resolved: true } : c
+        )
+      };
+      localStorage.setItem('prototype_comments', JSON.stringify(updated));
+      return updated;
+    });
+
+    // 2. Supabase update
+    const { error } = await supabase
+      .from('comments')
+      .update({ resolved: true })
+      .eq('id', commentId);
+
+    if (error) {
+      console.error("Error updating comment in Supabase, kept local version:", error);
+    }
+  };
+
+  const unresolveComment = async (markerId: string, commentId: string) => {
+    // 1. Optimistic update
+    setComments(prev => {
+      const updated = {
+        ...prev,
+        [markerId]: (prev[markerId] || []).map(c => 
+          c.id === commentId ? { ...c, resolved: false } : c
+        )
+      };
+      localStorage.setItem('prototype_comments', JSON.stringify(updated));
+      return updated;
+    });
+
+    // 2. Supabase update
+    const { error } = await supabase
+      .from('comments')
+      .update({ resolved: false })
+      .eq('id', commentId);
+
+    if (error) {
+      console.error("Error updating comment in Supabase, kept local version:", error);
     }
   };
 
@@ -189,6 +267,8 @@ export function CommentProvider({ children }: { children: React.ReactNode }) {
       setActiveMarker: handleSetMarker, 
       comments, 
       addComment,
+      resolveComment,
+      unresolveComment,
       isPanelOpen,
       setIsPanelOpen,
       isLoading
